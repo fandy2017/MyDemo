@@ -15,7 +15,7 @@ public class LineTrigger : MonoBehaviour {
 	private Vector3 mousePosition;
 	private bool isClick;
     private int lineCount = 100;
-    private Vector3 centerPoint; //public test暂代
+    private Vector3 centerPoint;
     
 	public GameObject lantern;
     public GameObject[] deco;
@@ -91,7 +91,7 @@ public class LineTrigger : MonoBehaviour {
 
         if (lighted && !once)
         {
-            Flip();
+            //Flip();
             StartCoroutine("Rabbit");
             m_AudioSource.PlayOneShot(sfx_up);
             GameManager.instance.SetCanMove(false);
@@ -143,18 +143,48 @@ public class LineTrigger : MonoBehaviour {
     }
 
     IEnumerator Rabbit(){
-        
+        if (GameManager.instance.CurID %2 ==0 && GameManager.instance.CurID != 0)
+        {
+            rabbit.GetComponent<SpriteRenderer>().flipY = true;
+        }
+        else
+        {
+            rabbit.GetComponent<SpriteRenderer>().flipY = false;
+        }
+
         for (int i = 0; i < 100; i++)
         {
-            Vector3 pos = m_lineRenderer.GetPosition(i);
-            rabbit.position = pos;
-            yield return new WaitForSeconds(0.01f);
+            if (i == 0)
+            {
+                Vector3 end2 = m_lineRenderer.GetPosition(i);
+                rabbit.position = end2;
+            }
+            else
+            {
+                Vector3 worldPos = m_lineRenderer.GetPosition(i);  
+                Vector3 direction = worldPos-rabbit.position;  
+                direction.z=0f;  
+                direction.Normalize();  
+                float targetAngle = Mathf.Atan2(direction.y,direction.x)*Mathf.Rad2Deg; 
+                rabbit.rotation = Quaternion.Euler( 0, 0, targetAngle );  
+                /*
+                Vector3 direction = m_lineRenderer.GetPosition(i) - rabbit.position; // （BA方向与X轴的夹角）  
+                float angle = Vector3.Angle(direction, Vector3.right);// 计算旋转角度  
+                direction = Vector3.Normalize(direction);///< 向量规范化  
+                float dot = Vector3.Dot(direction, Vector3.up);// 判断是否Vector3.right在同一方向  
+                if (dot < 0)
+                    angle = 360 - angle;
+                rabbit.localEulerAngles = new Vector3(0, 0, angle);
+                */
+                Vector3 end = m_lineRenderer.GetPosition(i);
+                rabbit.position = end;
+            }
+            yield return new WaitForSeconds(0.02f);
 
         }
         yield return new WaitForSeconds(0.1f);
-        float x = -rabbit.localScale.x;
-        rabbit.localScale = new Vector3(x, 1, 1);
         GameManager.instance.SetCanMove(true);
+
     }
 
     /*IEnumerator CenterPointAni(){
@@ -273,33 +303,13 @@ public class LineTrigger : MonoBehaviour {
     private void CheckColor(){
         if (GameManager.instance.CanMove)
         {
-            m_spriteRenderer.color = activeColor;
+            m_spriteRenderer.DOColor(activeColor,0.7f);
         }
         else
         {
-            m_spriteRenderer.color = inactiveColor;
+            m_spriteRenderer.DOColor(inactiveColor, -0.7f);
         }
     }
-
-	/*
-	private void RayCheck(){
-		//Ray _ray =Camera.main.ScreenPointToRay(Input.mousePosition);
-		RaycastHit2D hit = Physics2D.Raycast(mousePosition, -Vector2.up);
-		if (hit) {
-			print("HIT");
-			if (hit.transform.GetComponent<LineTrigger> () && !hit.transform.GetComponent<LineTrigger> ().isClick) {
-				print ("has line trigger");
-				LanternSetup ();
-				lighted = true;
-				hit.transform.GetComponent<LineTrigger> ().lighted = true;
-				hit.transform.GetComponent<CircleCollider2D> ().enabled = false;
-				GetComponent<CircleCollider2D> ().enabled = false;
-				//LineRendererUpdate ();
-			} 
-		} else {
-			//m_lineRenderer.enabled = false;
-		}
-	}*/
 
 
 }
