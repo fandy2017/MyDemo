@@ -10,6 +10,7 @@ public class LineTrigger : MonoBehaviour {
     public List<int> m_idList;
 	private LineRenderer m_lineRenderer;
     private SpriteRenderer m_spriteRenderer;
+    //private Animator m_animator;
     private AudioSource m_AudioSource;
     private AudioClip sfx_press,sfx_up,sfx_none;
 	private Vector3 mousePosition;
@@ -19,6 +20,8 @@ public class LineTrigger : MonoBehaviour {
     
 	public GameObject lantern;
     public GameObject[] deco;
+    private Transform lanParent;
+    private Transform decoParent;
 
     [SerializeField]
     private Color activeColor, inactiveColor;
@@ -33,12 +36,14 @@ public class LineTrigger : MonoBehaviour {
 		m_lineRenderer = GetComponent<LineRenderer> ();
         m_AudioSource = Camera.main.GetComponent<AudioSource>();
         m_spriteRenderer = GetComponent<SpriteRenderer>();
-        rabbit = GameObject.Find("Rabbit").transform;
+        rabbit = GameObject.Find("rabbit").transform;
+        //m_animator = rabbit.GetComponent<Animator>();
         m_idList = new List<int>();
         sfx_press = Resources.Load("SFX/Press2") as AudioClip;
         sfx_up = Resources.Load("SFX/Press3") as AudioClip;
         sfx_none = Resources.Load("SFX/Press4") as AudioClip;
-
+        lanParent = GameObject.Find("LanternHolder").transform;
+        decoParent = GameObject.Find("DecoHolder").transform;
 	}
 
 	void Start () {
@@ -135,7 +140,7 @@ public class LineTrigger : MonoBehaviour {
         once = true;
 	}
 
-    void Flip(){
+    void Flip(){  //使用sprite内置flip
         if (IsOdd())
             rabbit.localScale = new Vector3(1, 1, 1);
         else
@@ -143,6 +148,8 @@ public class LineTrigger : MonoBehaviour {
     }
 
     IEnumerator Rabbit(){
+        //m_animator.SetBool("move",!GameManager.instance.CanMove);
+
         if (GameManager.instance.CurID %2 ==0 && GameManager.instance.CurID != 0)
         {
             rabbit.GetComponent<SpriteRenderer>().flipY = true;
@@ -150,6 +157,10 @@ public class LineTrigger : MonoBehaviour {
         else
         {
             rabbit.GetComponent<SpriteRenderer>().flipY = false;
+        }
+        if (GameManager.instance.CurID == 0 && id % 2 == 0)
+        {
+            rabbit.GetComponent<SpriteRenderer>().flipY = true;
         }
 
         for (int i = 0; i < 100; i++)
@@ -182,9 +193,9 @@ public class LineTrigger : MonoBehaviour {
             yield return new WaitForSeconds(0.02f);
 
         }
-        yield return new WaitForSeconds(0.1f);
+        yield return null;
         GameManager.instance.SetCanMove(true);
-
+        //m_animator.SetBool("move", !GameManager.instance.CanMove);
     }
 
     /*IEnumerator CenterPointAni(){
@@ -210,19 +221,23 @@ public class LineTrigger : MonoBehaviour {
 	private void LanternSetup(){
 		for (int i = 1; i <= 3; i++) {
             Vector3 vec = m_lineRenderer.GetPosition (25*i);
-            Instantiate(lantern, new Vector3(vec.x, vec.y, -0.3f), Quaternion.identity);
+            GameObject lan = Instantiate(lantern, new Vector3(vec.x, vec.y, -0.3f), Quaternion.identity) as GameObject;
+            lan.transform.SetParent(lanParent);
         }
         for (int i = 1; i <= 4; i++)
         {
             Vector3 vec = m_lineRenderer.GetPosition(20 * i);
             if (IsOdd())
             {
-                Instantiate(deco[0], new Vector3(vec.x, vec.y, -0.3f), Quaternion.identity);
+                GameObject decora = Instantiate(deco[0], new Vector3(vec.x, vec.y, -0.3f), Quaternion.identity) as GameObject;
+                decora.transform.SetParent(decoParent);
             }
             else
             {
-                Instantiate(deco[1], new Vector3(vec.x, vec.y, -0.3f), Quaternion.identity);
+                GameObject decora = Instantiate(deco[1], new Vector3(vec.x, vec.y, -0.3f), Quaternion.identity) as GameObject;
+                decora.transform.SetParent(decoParent);
             }
+
         }
 
 	}
